@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DentCase — Dental Case Documentation</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1F7A6C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="DentCase">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F6F3;
+    --surface:#FFFFFF;
+    --ink:#14232E;
+    --ink-soft:#4B5A63;
+    --ink-faint:#8B98A1;
+    --accent:#1F7A6C;
+    --accent-soft:#E4F0EC;
+    --accent-line:#BFDAD3;
+    --alert:#B8493C;
+    --alert-soft:#F5E5E2;
+    --amber:#B4832E;
+    --amber-soft:#F4EBDC;
+    --border:#DEE3DF;
+    --font-display:'Space Grotesk', system-ui, sans-serif;
+    --font-body:'Inter', system-ui, sans-serif;
+    --font-mono:'IBM Plex Mono', ui-monospace, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased;}
+
+  body[data-theme="ocean"]{ --accent:#2563EB; --accent-soft:#E1EAFC; --accent-line:#B7CFF7; --bg:#F4F6FA; }
+  body[data-theme="plum"]{ --accent:#7C3A82; --accent-soft:#F2E4F3; --accent-line:#DCB9DE; --bg:#F7F4F6; }
+  body[data-theme="slate"]{ --accent:#475569; --accent-soft:#E7EAEE; --accent-line:#C7CFD8; --bg:#F5F5F4; }
+  body[data-theme="clay"]{ --accent:#B4592E; --accent-soft:#F5E6DC; --accent-line:#E3C0A6; --bg:#F6F4F1; }
+
+  .theme-swatches{display:flex;gap:10px;margin-top:6px;}
+  .theme-swatch{width:36px;height:36px;border-radius:50%;border:2px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;}
+  .theme-swatch.active{border-color:var(--ink);}
+  .theme-swatch.teal{background:#1F7A6C;}
+  .theme-swatch.ocean{background:#2563EB;}
+  .theme-swatch.plum{background:#7C3A82;}
+  .theme-swatch.slate{background:#475569;}
+  .theme-swatch.clay{background:#B4592E;}
+  #app{max-width:780px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
+
+  header{padding:20px 18px 0 18px;background:var(--bg);position:sticky;top:0;z-index:20;}
+  .brand{display:flex;align-items:baseline;gap:8px;margin-bottom:16px;}
+  .brand-mark{font-family:var(--font-mono);font-size:11px;letter-spacing:0.14em;color:var(--accent);border:1px solid var(--accent-line);background:var(--accent-soft);padding:3px 6px;border-radius:4px;}
+  .brand h1{font-family:var(--font-display);font-weight:700;font-size:22px;margin:0;letter-spacing:-0.01em;flex:1;}
+  .settings-btn{background:none;border:1px solid var(--border);border-radius:7px;width:32px;height:32px;font-size:15px;cursor:pointer;color:var(--ink-soft);flex-shrink:0;}
+  .settings-btn:hover{border-color:var(--accent-line);color:var(--accent);}
+  .settings-note{font-size:12px;color:var(--ink-faint);line-height:1.5;margin:-4px 0 14px 0;}
+  nav{display:flex;gap:4px;border-bottom:1px solid var(--border);overflow-x:auto;}
+  nav button{flex:1;background:none;border:none;font-family:var(--font-body);font-weight:600;font-size:13.5px;color:var(--ink-faint);padding:11px 6px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s ease, border-color .15s ease;white-space:nowrap;}
+  nav button.active{color:var(--ink);border-bottom-color:var(--accent);}
+  nav button:hover{color:var(--ink);}
+
+  main{flex:1;padding:18px;padding-bottom:60px;}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .search-row{display:flex;gap:8px;margin-bottom:16px;}
+  .search-row input{flex:1;font-family:var(--font-body);font-size:14px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink);}
+  .search-row input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  .btn-new{background:var(--ink);color:#fff;border:none;border-radius:8px;font-family:var(--font-body);font-weight:600;font-size:13.5px;padding:10px 16px;cursor:pointer;white-space:nowrap;}
+  .btn-new:hover{background:#0d1922;}
+
+  .patient-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;transition:border-color .15s ease;}
+  .patient-card:hover{border-color:var(--accent-line);}
+  .patient-card .pname{font-weight:600;font-size:15px;}
+  .patient-card .pmeta{font-family:var(--font-mono);font-size:12px;color:var(--ink-faint);margin-top:3px;}
+  .stage-tag{font-family:var(--font-mono);font-size:11px;background:var(--accent-soft);color:var(--accent);border-radius:5px;padding:3px 7px;white-space:nowrap;flex-shrink:0;}
+  .empty-state{text-align:center;padding:60px 20px;color:var(--ink-faint);}
+  .empty-state .glyph{font-family:var(--font-mono);font-size:34px;color:var(--accent-line);margin-bottom:10px;}
+  .empty-state p{font-size:14px;line-height:1.5;margin:4px 0 16px 0;}
+
+  .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;}
+  .section-title{font-family:var(--font-display);font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px;margin:0 0 12px 0;color:var(--ink);}
+  .section-title .idx{font-family:var(--font-mono);font-size:11px;color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:2px 6px;flex-shrink:0;}
+  .section-hint{font-weight:400;color:var(--ink-faint);font-size:12px;}
+  .field{margin-bottom:12px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;letter-spacing:0.01em;}
+  .field input[type=text], .field input[type=number], .field select, .field textarea{width:100%;font-family:var(--font-body);font-size:14px;color:var(--ink);padding:9px 10px;border:1px solid var(--border);border-radius:7px;background:#fff;}
+  .field textarea{resize:vertical;min-height:64px;line-height:1.5;}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+  .dept-select-field select{font-family:var(--font-display);font-weight:600;font-size:15px;padding:11px 10px;border:1.5px solid var(--accent-line);background:var(--accent-soft);color:var(--ink);border-radius:8px;}
+
+  .mic-wrap{position:relative;}
+  .mic-btn{position:absolute;right:8px;bottom:8px;width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);}
+  .mic-btn.recording{background:var(--alert);border-color:var(--alert);color:#fff;animation:pulse 1.2s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(184,73,60,.45);}70%{box-shadow:0 0 0 8px rgba(184,73,60,0);}100%{box-shadow:0 0 0 0 rgba(184,73,60,0);}}
+
+  /* periodontal chart */
+  .arch-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;color:var(--ink-faint);text-transform:uppercase;margin:14px 0 6px 0;}
+  .arch-label:first-child{margin-top:0;}
+  .tooth-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;}
+  .tooth{border:1px solid var(--border);border-radius:7px;padding:6px 4px 7px 4px;background:#fbfbfa;text-align:center;}
+  .tooth .tnum{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);margin-bottom:4px;}
+  .tooth input.pd{width:100%;text-align:center;font-family:var(--font-mono);font-size:13px;font-weight:600;border:1px solid var(--border);border-radius:5px;padding:3px 0;margin-bottom:4px;background:#fff;color:var(--ink);}
+  .tooth input.pd.pd-ok{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent);}
+  .tooth input.pd.pd-mod{background:var(--amber-soft);border-color:#E3CFA0;color:var(--amber);}
+  .tooth input.pd.pd-sev{background:var(--alert-soft);border-color:#E4BDB6;color:var(--alert);}
+  .tooth-controls{display:flex;gap:3px;justify-content:center;align-items:center;}
+  .bop-dot{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--border);background:#fff;cursor:pointer;}
+  .bop-dot.active{background:var(--alert);border-color:var(--alert);}
+  .mob-select{font-family:var(--font-mono);font-size:10px;border:1px solid var(--border);border-radius:4px;padding:1px;background:#fff;color:var(--ink-soft);width:34px;}
+  .chart-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink-faint);margin-top:12px;font-family:var(--font-mono);}
+  .chart-legend span{display:flex;align-items:center;gap:5px;}
+  .legend-swatch{width:10px;height:10px;border-radius:3px;display:inline-block;}
+  .fdi-note{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);margin-top:10px;}
+
+  /* tooth-wise findings table (pedo) */
+  .findings-table{width:100%;border-collapse:collapse;margin-bottom:8px;}
+  .findings-table th{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);text-align:left;padding:0 6px 6px 0;}
+  .findings-table td{padding:3px 6px 3px 0;}
+  .findings-table input{width:100%;font-family:var(--font-body);font-size:13px;padding:6px 7px;border:1px solid var(--border);border-radius:6px;background:#fff;}
+  .findings-table .rm-row{background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:16px;padding:2px 6px;}
+  .findings-table .rm-row:hover{color:var(--alert);}
+  .add-row-btn{background:none;border:1px dashed var(--border);color:var(--accent);font-family:var(--font-body);font-weight:600;font-size:13px;padding:8px;border-radius:7px;cursor:pointer;width:100%;}
+  .add-row-btn:hover{border-color:var(--accent-line);background:var(--accent-soft);}
+
+  .image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:10px;}
+  .image-card{border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fbfbfa;}
+  .image-card img{width:100%;height:90px;object-fit:cover;display:block;}
+  .image-card .img-meta{padding:6px;}
+  .image-card select, .image-card input{width:100%;font-size:11px;padding:4px;border:1px solid var(--border);border-radius:5px;margin-bottom:4px;font-family:var(--font-body);}
+  .image-card .rm-img{width:100%;background:none;border:none;color:var(--alert);font-size:11px;cursor:pointer;padding:2px 0;}
+  @media print{ .image-card select, .image-card .rm-img{display:none;} .image-card{border:1px solid #ccc;} }
+
+  .actions{display:flex;gap:10px;margin-top:4px;}
+  .btn-primary{flex:1;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:var(--font-body);font-weight:600;font-size:14px;padding:13px;cursor:pointer;}
+  .btn-primary:hover{background:#186257;}
+  .btn-primary:disabled{background:var(--ink-faint);cursor:default;}
+  .btn-secondary{background:#fff;color:var(--ink);border:1px solid var(--border);border-radius:8px;font-family:var(--font-body);font-weight:600;font-size:14px;padding:13px 16px;cursor:pointer;}
+  .btn-secondary:hover{border-color:var(--ink-faint);}
+  .btn-ghost{background:none;border:none;color:var(--ink-faint);font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+
+  .detail-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
+  .detail-header h2{font-family:var(--font-display);font-size:20px;margin:0 0 4px 0;}
+  .detail-header .pmeta{font-family:var(--font-mono);font-size:12px;color:var(--ink-faint);}
+  .kv{display:grid;grid-template-columns:38% 1fr;gap:4px 10px;font-size:13.5px;line-height:1.5;margin-bottom:6px;}
+  .kv dt{color:var(--ink-faint);font-weight:600;}
+  .kv dd{margin:0;}
+  .detail-body-text{font-size:14px;line-height:1.6;margin:0 0 10px 0;white-space:pre-wrap;}
+  .print-only{display:none;}
+
+  .ai-panel{background:var(--ink);color:#F5F6F3;border-radius:12px;padding:18px;margin-top:14px;font-size:13.5px;line-height:1.65;white-space:pre-wrap;font-family:var(--font-body);}
+  .ai-panel .ai-label{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;color:var(--accent-line);text-transform:uppercase;margin-bottom:10px;display:block;}
+  .loading-dots::after{content:'';animation:dots 1.2s steps(4,end) infinite;}
+  @keyframes dots{0%,20%{content:'';}40%{content:'.';}60%{content:'..';}80%,100%{content:'...';}}
+
+  @media print{
+    header, .actions, .mic-btn, .btn-ghost, nav, .search-row{display:none !important;}
+    body{background:#fff;}
+    #app{max-width:100%;}
+    .section{border:none;box-shadow:none;padding:0;margin-bottom:16px;page-break-inside:avoid;}
+    .ai-panel{background:#fff;color:#000;border:1px solid #ccc;}
+    .ai-panel .ai-label{color:#555;}
+    .print-only{display:block;}
+    .print-title{font-family:var(--font-display);font-weight:700;font-size:19px;margin-bottom:2px;}
+    .print-sub{font-family:var(--font-mono);font-size:11px;color:#555;margin-bottom:18px;}
+  }
+
+  @media (max-width:420px){
+    .tooth-grid{grid-template-columns:repeat(4,1fr);}
+    .row3{grid-template-columns:1fr 1fr;}
+    .kv{grid-template-columns:44% 1fr;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">
+      <span class="brand-mark">DDS</span>
+      <h1>DentCase</h1>
+      <button class="settings-btn" onclick="showView('settings')" title="Institution details">⚙</button>
+    </div>
+    <nav>
+      <button id="tab-list" class="active" onclick="showView('list')">Patients</button>
+      <button id="tab-appts" onclick="showView('appts')">Appointments</button>
+      <button id="tab-new" onclick="startNewCase()">New Case</button>
+      <button id="tab-detail" onclick="showView('detail')" style="display:none;">Case</button>
+    </nav>
+  </header>
+
+  <main id="view-list" class="view active">
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="Search by patient name…" oninput="renderList()" />
+      <button class="btn-new" onclick="startNewCase()">+ New</button>
+    </div>
+    <div id="listContainer"></div>
+  </main>
+
+  <main id="view-new" class="view">
+    <div class="section">
+      <p class="section-title"><span class="idx">01</span> Patient details</p>
+      <div class="row3">
+        <div class="field"><label>Name</label><input type="text" id="f-name" /></div>
+        <div class="field"><label>Age</label><input type="number" id="f-age" min="0" /></div>
+        <div class="field"><label>Sex</label>
+          <select id="f-sex"><option value="">—</option><option>Female</option><option>Male</option><option>Other</option></select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Date of examination</label><input type="text" id="f-date" /></div>
+        <div class="field"><label>Phone number</label><input type="text" id="f-phone" placeholder="10-digit mobile number" inputmode="tel" /></div>
+      </div>
+      <div class="field dept-select-field">
+        <label>Department</label>
+        <select id="f-dept" onchange="onDeptChange()">
+          <option value="">— Select department —</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section">
+      <p class="section-title"><span class="idx">02</span> Chief complaint <span class="section-hint">— select details, then generate the statement</span></p>
+      <div class="row3">
+        <div class="field"><label>Symptom</label>
+          <select id="cc-symptom">
+            <option value="">—</option>
+            <option>pain</option><option>swelling</option><option>sensitivity</option>
+            <option>bleeding gums</option><option>difficulty in chewing</option>
+            <option>mobile tooth</option><option>missing tooth</option>
+            <option>broken/fractured tooth</option><option>bad breath</option>
+            <option>decayed tooth</option><option>ill-fitting denture</option>
+            <option>irregularly placed teeth</option><option>routine dental checkup</option>
+            <option>other</option>
+          </select>
+        </div>
+        <div class="field"><label>Duration</label><input type="number" id="cc-duration" min="0" placeholder="e.g. 3" /></div>
+        <div class="field"><label>Unit</label>
+          <select id="cc-unit"><option>days</option><option>weeks</option><option>months</option><option>years</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Region / tooth (FDI)</label><input type="text" id="cc-region" placeholder="e.g. lower left back tooth region (36)" /></div>
+      <button type="button" class="add-row-btn" onclick="generateCC()">✨ Generate chief complaint</button>
+      <div class="field" style="margin-top:12px;"><label>Chief complaint (edit as needed)</label><textarea id="f-cc" placeholder="In patient's own words…"></textarea></div>
+    </div>
+
+    <div class="section">
+      <p class="section-title"><span class="idx">03</span> History of present illness <span class="section-hint">— fill what's relevant, then compose</span></p>
+      <div class="row2">
+        <div class="field"><label>Onset</label><select id="hopi-onset"><option value="">—</option><option>Sudden</option><option>Gradual</option></select></div>
+        <div class="field"><label>Duration since onset</label><input type="text" id="hopi-duration" placeholder="e.g. 3 days" /></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Type / nature of pain</label>
+          <select id="hopi-nature"><option value="">—</option><option>Sharp</option><option>Dull aching</option><option>Throbbing</option><option>Burning</option><option>Shooting</option><option>Intermittent</option><option>Continuous</option></select>
+        </div>
+        <div class="field"><label>Severity</label>
+          <select id="hopi-severity"><option value="">—</option><option>Mild</option><option>Moderate</option><option>Severe</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Location and site</label><input type="text" id="hopi-location" placeholder="e.g. in relation to tooth 36" /></div>
+      <div class="field"><label>Prior occurrence</label>
+        <select id="hopi-prior"><option value="">—</option><option>First episode</option><option>Recurrent — similar episodes in the past</option></select>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Exacerbating factors</label><input type="text" id="hopi-exacerbating" placeholder="e.g. cold, hot, chewing, lying down" /></div>
+        <div class="field"><label>Relieving factors</label><input type="text" id="hopi-relieving" placeholder="e.g. medication, nothing" /></div>
+      </div>
+      <div class="field"><label>Associated phenomenon</label><input type="text" id="hopi-associated" placeholder="e.g. fever, malaise, nausea, facial swelling — or none" /></div>
+      <div class="field"><label>Previous medications taken</label><input type="text" id="hopi-medications" placeholder="e.g. paracetamol, self-medicated antibiotic — or none" /></div>
+      <button type="button" class="add-row-btn" onclick="generateHOPI()">✨ Compose HOPI</button>
+      <div class="field" style="margin-top:12px;"><label>History of present illness (edit as needed)</label><textarea id="f-hpi" placeholder="Composed narrative appears here…"></textarea></div>
+    </div>
+
+    <div class="section">
+      <p class="section-title"><span class="idx">04</span> Past history</p>
+      <div class="field"><label>Medical history</label><textarea id="f-mh" placeholder="Diabetes, hypertension, medications, allergies, systemic conditions…"></textarea></div>
+      <div class="field"><label>Dental history</label><textarea id="f-dh" placeholder="Prior treatment, oral hygiene habits…"></textarea></div>
+      <div class="row2">
+        <div class="field"><label>Personal history</label><textarea id="f-ph" placeholder="Diet, tobacco/alcohol use, oral habits…"></textarea></div>
+        <div class="field"><label>Family history</label><textarea id="f-fh" placeholder="Relevant hereditary or familial conditions…"></textarea></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <p class="section-title"><span class="idx">05</span> General &amp; extraoral examination</p>
+      <div class="field"><textarea id="f-extraoral" placeholder="Build, gait, facial symmetry, lymph nodes, TMJ, lips…"></textarea></div>
+    </div>
+
+    <div class="section">
+      <p class="section-title"><span class="idx">06</span> Dentition status chart <span class="section-hint">— FDI numbering, applies to every department</span></p>
+      <p class="settings-note">Mark missing teeth, decay, root stumps, existing restorations (with material), crowns, bridges, and implants. Tap the dot for tenderness on percussion.</p>
+      <div style="overflow-x:auto;">
+      <table class="findings-table" id="dentition-table">
+        <thead><tr><th style="width:12%;">FDI</th><th style="width:26%;">Status</th><th style="width:40%;">Restoration / prosthesis detail</th><th style="width:12%;">TTP</th></tr></thead>
+        <tbody id="dentition-tbody"></tbody>
+      </table>
+      </div>
+      <div class="fdi-note">TTP = tender on percussion. Selecting "Fractured" or "Impacted" reveals a sub-field (Ellis class / impaction direction). Leave status as "Present" for normal, unremarkable teeth.</div>
+    </div>
+
+    <div class="section" id="dept-section-wrap" style="display:none;">
+      <p class="section-title"><span class="idx">07</span> <span id="dept-section-title">Department-specific examination</span></p>
+      <div id="dept-forms-container"></div>
+    </div>
+
+    <div class="section">
+      <p class="section-title"><span class="idx">08</span> Clinical notes</p>
+      <div class="field mic-wrap">
+        <label>Findings / dictation</label>
+        <textarea id="f-notes" placeholder="Tap the mic to dictate chairside notes…" style="min-height:90px;padding-right:44px;"></textarea>
+        <button type="button" class="mic-btn" id="micBtn" onclick="toggleDictation()" title="Dictate">🎤</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <p class="section-title"><span class="idx">09</span> Final diagnosis &amp; treatment plan</p>
+      <div class="field"><label>Diagnosis</label><textarea id="f-dx" placeholder="Working / final diagnosis…"></textarea></div>
+      <div class="field"><label>Treatment plan</label><textarea id="f-tx" placeholder="Phased treatment plan, referrals, maintenance interval…"></textarea></div>
+    </div>
+
+    <div class="section">
+      <p class="section-title"><span class="idx">10</span> Next visit</p>
+      <div class="row2">
+        <div class="field"><label>Next visit date</label><input type="date" id="f-nextdate" /></div>
+        <div class="field"><label>Planned procedure</label><input type="text" id="f-nextproc" placeholder="e.g. Scaling + root planing" /></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <p class="section-title"><span class="idx">11</span> Clinical &amp; radiographic images</p>
+      <p class="settings-note">Add intraoral/extraoral photos and radiographs. Images are compressed automatically and stored with this case only.</p>
+      <div class="field"><input type="file" id="imgFileInput" accept="image/*" multiple onchange="onImagesSelected(event)" /></div>
+      <div id="imagePreviewGrid" class="image-grid"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-secondary" onclick="showView('list')">Cancel</button>
+      <button class="btn-primary" onclick="saveCase()">Save case</button>
+    </div>
+  </main>
+
+  <main id="view-detail" class="view">
+    <div class="print-only">
+      <div class="print-title" id="p-institution-line">Dental Case Sheet</div>
+      <div class="print-sub" id="p-dept-line"></div>
+      <div class="print-sub" id="p-examiner-line"></div>
+    </div>
+    <div class="detail-header">
+      <div>
+        <h2 id="d-name">—</h2>
+        <div class="pmeta" id="d-meta">—</div>
+      </div>
+      <button class="btn-ghost" onclick="editCurrentCase()">Edit</button>
+    </div>
+
+    <div class="section">
+      <p class="section-title"><span class="idx">·</span> History</p>
+      <div id="d-history"></div>
+    </div>
+    <div class="section">
+      <p class="section-title"><span class="idx">·</span> General &amp; extraoral examination</p>
+      <p class="detail-body-text" id="d-extraoral"></p>
+    </div>
+    <div class="section" id="d-dentition-section">
+      <p class="section-title"><span class="idx">·</span> Dentition status</p>
+      <div id="d-dentition" class="detail-body-text"></div>
+    </div>
+    <div class="section" id="d-dept-section">
+      <p class="section-title"><span class="idx">·</span> <span id="d-dept-title">Department-specific findings</span></p>
+      <div id="d-dept-content"></div>
+    </div>
+    <div class="section">
+      <p class="section-title"><span class="idx">·</span> Clinical notes</p>
+      <p class="detail-body-text" id="d-notes"></p>
+    </div>
+    <div class="section">
+      <p class="section-title"><span class="idx">·</span> Diagnosis</p>
+      <p class="detail-body-text" id="d-dx"></p>
+    </div>
+    <div class="section">
+      <p class="section-title"><span class="idx">·</span> Treatment plan</p>
+      <p class="detail-body-text" id="d-tx"></p>
+    </div>
+    <div class="section" id="d-nextvisit-section">
+      <p class="section-title"><span class="idx">·</span> Next visit</p>
+      <p class="detail-body-text" id="d-nextvisit"></p>
+    </div>
+    <div class="section" id="d-images-section" style="display:none;">
+      <p class="section-title"><span class="idx">·</span> Images</p>
+      <div id="d-images" class="image-grid"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="genBtn" onclick="generateSummary()">Generate AI case report</button>
+    </div>
+    <div id="aiPanel"></div>
+
+    <div class="actions" style="margin-top:14px;">
+      <button class="btn-secondary" style="flex:1;" onclick="window.print()">🖨 Print case sheet</button>
+    </div>
+  </main>
+
+  <main id="view-appts" class="view">
+    <p class="section-title" style="margin-bottom:14px;"><span class="idx">📅</span> Upcoming appointments</p>
+    <div id="apptsContainer"></div>
+  </main>
+
+  <main id="view-settings" class="view">
+    <div class="section">
+      <p class="section-title"><span class="idx">·</span> Institution details</p>
+      <p class="settings-note">Set this once — it appears on the header of every printed case sheet, so you don't have to retype it per patient.</p>
+      <div class="field"><label>College / hospital / clinic name</label><input type="text" id="s-institution" placeholder="e.g. Government Dental College, Puducherry" /></div>
+      <div class="field"><label>Unit / department (optional)</label><input type="text" id="s-unit" placeholder="e.g. Dept. of Periodontics" /></div>
+      <div class="row2">
+        <div class="field"><label>Examiner name</label><input type="text" id="s-examiner" placeholder="Your name" /></div>
+        <div class="field"><label>Roll no. / reg. no.</label><input type="text" id="s-regno" placeholder="Optional" /></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <p class="section-title"><span class="idx">·</span> App color</p>
+      <div class="theme-swatches">
+        <button type="button" class="theme-swatch teal" data-theme="teal" onclick="setTheme('teal')" title="Teal"></button>
+        <button type="button" class="theme-swatch ocean" data-theme="ocean" onclick="setTheme('ocean')" title="Ocean blue"></button>
+        <button type="button" class="theme-swatch plum" data-theme="plum" onclick="setTheme('plum')" title="Plum"></button>
+        <button type="button" class="theme-swatch slate" data-theme="slate" onclick="setTheme('slate')" title="Slate"></button>
+        <button type="button" class="theme-swatch clay" data-theme="clay" onclick="setTheme('clay')" title="Clay"></button>
+      </div>
+    </div>
+
+    <div class="section">
+      <p class="section-title"><span class="idx">·</span> Cloud sync</p>
+      <p class="settings-note" id="sync-status">📱 Local only — data stays on this device until you add Supabase details below.</p>
+      <p class="settings-note">This app now runs standalone, so it needs its own storage — not Claude's. <a href="https://supabase.com" target="_blank" rel="noopener" style="color:var(--accent);">Supabase</a> has a free tier that works well. Create a project there, run the one-time setup SQL from the included README, then paste your Project URL and anon key below.</p>
+      <div class="field"><label>Supabase project URL</label><input type="text" id="s-supabase-url" placeholder="https://xxxxx.supabase.co" /></div>
+      <div class="field"><label>Supabase anon (public) key</label><input type="text" id="s-supabase-key" placeholder="eyJhbGciOi..." /></div>
+      <button type="button" class="add-row-btn" onclick="saveSupabaseConfig()">Save cloud sync details</button>
+    </div>
+
+    <div class="section">
+      <p class="section-title"><span class="idx">·</span> Shared workspace</p>
+      <p class="settings-note">Everyone who enters the <b>same code</b> below sees the same patient list — like sharing a WiFi password. There's no separate login, so only share this with people you trust with patient data. Leave blank to keep your cases private to this device. Requires cloud sync above to actually share between devices.</p>
+      <div class="field"><label>Workspace code</label><input type="text" id="s-workspace" placeholder="e.g. GDC-PERIO-2026" /></div>
+    </div>
+
+    <div class="section">
+      <p class="section-title"><span class="idx">·</span> Backup</p>
+      <p class="settings-note">Downloads every case as a single file you control. Save it to Google Drive, email it to yourself, or keep it as a local backup.</p>
+      <div class="actions">
+        <button class="btn-secondary" style="flex:1;" onclick="exportBackup()">⬇ Download backup</button>
+        <button class="btn-secondary" style="flex:1;" onclick="window.open('https://drive.google.com/drive/my-drive','_blank')">Open Google Drive</button>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label>Restore from backup file</label>
+        <input type="file" id="importFile" accept="application/json" onchange="importBackup(event)" />
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-secondary" onclick="showView('list')">Back</button>
+      <button class="btn-primary" onclick="saveSettings()">Save details</button>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ================= Department configuration ================= */
+const DEPARTMENTS = [
+  { id:'perio', label:'Periodontics', fields:[
+    { id:'ohis', label:'Oral Hygiene Index (OHI-S)', type:'text', placeholder:'e.g. 2.4 — fair' },
+    { id:'gingivalStatus', label:'Gingival status', type:'textarea', placeholder:'Color, contour, consistency, bleeding tendency…' },
+    { id:'stage', label:'Stage (2018 classification)', type:'select', options:['Stage I','Stage II','Stage III','Stage IV'] },
+    { id:'grade', label:'Grade', type:'select', options:['Grade A','Grade B','Grade C'] },
+    { id:'chart', label:'Full-mouth periodontal chart (FDI)', type:'periochart' }
+  ]},
+  { id:'oralmed', label:'Oral Medicine & Radiology', fields:[
+    { id:'extraoralLesion', label:'Extraoral findings related to lesion', type:'textarea', placeholder:'Facial asymmetry, lymphadenopathy…' },
+    { id:'lesionSite', label:'Lesion site', type:'text' },
+    { id:'lesionSize', label:'Lesion size', type:'text', placeholder:'e.g. 1.5 x 2 cm' },
+    { id:'lesionShape', label:'Shape / border', type:'text' },
+    { id:'lesionColor', label:'Color', type:'text' },
+    { id:'lesionSurface', label:'Surface texture', type:'text' },
+    { id:'lesionConsistency', label:'Consistency', type:'select', options:['Soft','Firm','Fluctuant','Indurated','Bony hard'] },
+    { id:'tenderness', label:'Tenderness', type:'select', options:['Non-tender','Tender'] },
+    { id:'investigations', label:'Investigations advised', type:'textarea', placeholder:'Radiograph type, biopsy, blood investigations…' },
+    { id:'provisionalDx', label:'Provisional diagnosis', type:'text' },
+    { id:'differentialDx', label:'Differential diagnosis', type:'text' }
+  ]},
+  { id:'pedo', label:'Pedodontics', fields:[
+    { id:'dentitionStatus', label:'Dentition status', type:'select', options:['Primary','Mixed','Permanent'] },
+    { id:'behavior', label:'Behavior rating (Frankl scale)', type:'select', options:['Definitely negative','Negative','Positive','Definitely positive'] },
+    { id:'deft', label:'deft index', type:'text' },
+    { id:'dmft', label:'DMFT index', type:'text' },
+    { id:'toothTable', label:'Tooth-wise findings (FDI)', type:'toothtable' },
+    { id:'preventivePlan', label:'Preventive plan', type:'textarea', placeholder:'Fluoride application, pit & fissure sealants, OHI, diet counseling…' },
+    { id:'behaviorMgmt', label:'Behavior management technique', type:'text', placeholder:'Tell-show-do, positive reinforcement…' }
+  ]},
+  { id:'prostho', label:'Prosthodontics', fields:[
+    { id:'edentulousStatus', label:'Edentulous status', type:'select', options:['Dentate — needs FPD','Partially edentulous','Completely edentulous'] },
+    { id:'archInvolved', label:'Arch(es) involved', type:'select', options:['Maxillary','Mandibular','Both'] },
+    { id:'classification', label:'Classification', type:'text', placeholder:"Kennedy class (RPD) or ridge class (CD)…" },
+    { id:'abutmentTeeth', label:'Abutment teeth (FDI)', type:'text', placeholder:'e.g. 14, 16' },
+    { id:'existingProsthesis', label:'Existing prosthesis', type:'text', placeholder:'Type, condition, fit, patient satisfaction…' },
+    { id:'occlusion', label:'Occlusal relationship', type:'text', placeholder:"Angle's molar relation, vertical dimension…" },
+    { id:'plannedProsthesis', label:'Planned prosthesis', type:'select', options:['Fixed partial denture','Removable partial denture','Complete denture','Implant-supported prosthesis','Overdenture'] }
+  ]},
+  { id:'ortho', label:'Orthodontics', fields:[
+    { id:'facialProfile', label:'Facial profile', type:'select', options:['Straight','Convex','Concave'] },
+    { id:'facialSymmetry', label:'Facial symmetry', type:'text', placeholder:'Symmetric / asymmetric — notes' },
+    { id:'lipCompetency', label:'Lip competency', type:'select', options:['Competent','Incompetent','Potentially competent'] },
+    { id:'molarRight', label:'Molar relation — right', type:'select', options:['Class I','Class II','Class III'] },
+    { id:'molarLeft', label:'Molar relation — left', type:'select', options:['Class I','Class II','Class III'] },
+    { id:'overjet', label:'Overjet (mm)', type:'number' },
+    { id:'overbite', label:'Overbite (mm)', type:'number' },
+    { id:'crossbite', label:'Crossbite', type:'text' },
+    { id:'midline', label:'Midline shift', type:'text' },
+    { id:'crowdingSpacing', label:'Crowding / spacing', type:'text', placeholder:'mm, per arch' },
+    { id:'habits', label:'Habit history', type:'text', placeholder:'Thumb sucking, tongue thrust, mouth breathing…' }
+  ]},
+  { id:'conserv', label:'Conservative Dentistry & Endodontics', fields:[
+    { id:'toothInvolved', label:'Tooth involved (FDI)', type:'text', placeholder:'e.g. 36' },
+    { id:'coldTest', label:'Cold test', type:'select', options:['Normal response','Delayed response','No response','Lingering pain'] },
+    { id:'eptTest', label:'Electric pulp test', type:'text' },
+    { id:'percussion', label:'Percussion', type:'select', options:['Negative','Positive'] },
+    { id:'palpation', label:'Palpation', type:'select', options:['Negative','Positive'] },
+    { id:'cariesClass', label:'Caries classification', type:'text', placeholder:"Black's class or site-stage" },
+    { id:'radiographicFindings', label:'Radiographic findings', type:'textarea', placeholder:'Periapical status, canal morphology, prior treatment…' },
+    { id:'proposedTx', label:'Proposed treatment', type:'select', options:['Restoration','Pulp capping','Root canal treatment','Retreatment','Apexification'] }
+  ]},
+  { id:'surgery', label:'Oral & Maxillofacial Surgery', fields:[
+    { id:'indication', label:'Indication for surgery', type:'select', options:['Extraction','Impaction','Cyst / tumor','Trauma','Orthognathic','Infection','Other'] },
+    { id:'siteInvolved', label:'Tooth (FDI) / site involved', type:'text' },
+    { id:'asaStatus', label:'ASA physical status', type:'select', options:['ASA I','ASA II','ASA III','ASA IV','ASA V'] },
+    { id:'radiographicAssessment', label:'Radiographic assessment', type:'textarea' },
+    { id:'anesthesiaPlan', label:'Anesthesia plan', type:'select', options:['Local anesthesia','IV sedation','General anesthesia'] },
+    { id:'procedurePlan', label:'Procedure plan', type:'textarea' }
+  ]}
+];
+
+/* FDI quadrants */
+const FDI_UR=[18,17,16,15,14,13,12,11], FDI_UL=[21,22,23,24,25,26,27,28],
+      FDI_LR=[48,47,46,45,44,43,42,41], FDI_LL=[31,32,33,34,35,36,37,38];
+const FDI_ALL = [11,12,13,14,15,16,17,18,21,22,23,24,25,26,27,28,31,32,33,34,35,36,37,38,41,42,43,44,45,46,47,48];
+const TOOTH_STATUSES = ['Present','Missing','Decayed','Grossly decayed','Root stump','Restored','Crown','Bridge (abutment)','Bridge (pontic)','Implant','Impacted','Fractured'];
+const ELLIS_CLASSES = [
+  'Class I — enamel fracture only',
+  'Class II — enamel + dentin, no pulp exposure',
+  'Class III — enamel + dentin with pulp exposure',
+  'Class IV — non-vital tooth',
+  'Class V — avulsion',
+  'Class VI — root fracture',
+  'Class VII — displacement, no fracture',
+  'Class VIII — crown fracture, entire crown',
+  'Class IX — trauma to primary tooth'
+];
+const IMPACTION_TYPES = ['Mesioangular','Distoangular','Vertical','Horizontal','Transverse'];
+
+let patients = [];
+let currentId = null;
+let recog = null;
+let recording = false;
+let pedoRowsState = [];
+let pendingImages = [];
+let institutionSettings = { institution:'', unit:'', examiner:'', regno:'', workspace:'', theme:'teal' };
+
+/* ================= Storage abstraction =================
+   This app runs standalone (outside claude.ai), so it uses:
+   - localStorage as the always-available default (private to this device/browser)
+   - an optional free Supabase project for real cloud sync across devices/team members
+   Configure Supabase URL + anon key in Settings > Cloud sync. Until then, everything
+   works fully offline on localStorage alone. */
+function getDeviceId(){
+  let id = localStorage.getItem('dentcase-device-id');
+  if(!id){ id = 'dev_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('dentcase-device-id', id); }
+  return id;
+}
+function getSupabaseConfig(){
+  try{ return JSON.parse(localStorage.getItem('dentcase-supabase-config')||'null') || {url:'',anonKey:''}; }
+  catch(e){ return {url:'',anonKey:''}; }
+}
+function setSupabaseConfig(cfg){ localStorage.setItem('dentcase-supabase-config', JSON.stringify(cfg)); }
+function supabaseReady(){ const c = getSupabaseConfig(); return !!(c.url && c.anonKey); }
+
+async function supabaseGet(fullKey){
+  const c = getSupabaseConfig();
+  const res = await fetch(`${c.url}/rest/v1/kv_store?key=eq.${encodeURIComponent(fullKey)}&select=value`, {
+    headers: { apikey: c.anonKey, Authorization: `Bearer ${c.anonKey}` }
+  });
+  if(!res.ok) throw new Error('Supabase read failed ('+res.status+')');
+  const rows = await res.json();
+  return rows.length ? rows[0].value : null;
+}
+async function supabaseSet(fullKey, value){
+  const c = getSupabaseConfig();
+  const res = await fetch(`${c.url}/rest/v1/kv_store`, {
+    method:'POST',
+    headers: { apikey:c.anonKey, Authorization:`Bearer ${c.anonKey}`, 'Content-Type':'application/json', Prefer:'resolution=merge-duplicates' },
+    body: JSON.stringify([{ key: fullKey, value: value }])
+  });
+  if(!res.ok) throw new Error('Supabase write failed ('+res.status+')');
+}
+
+const Store = {
+  async get(key, shared){
+    const fullKey = shared ? key : `priv:${getDeviceId()}:${key}`;
+    if(supabaseReady()){
+      try{
+        const value = await supabaseGet(fullKey);
+        return value !== null ? { key, value, shared: !!shared } : null;
+      }catch(e){ console.warn('Supabase unavailable, falling back to local copy:', e.message); }
+    }
+    const raw = localStorage.getItem('dc:'+fullKey);
+    return raw !== null ? { key, value: raw, shared: !!shared } : null;
+  },
+  async set(key, value, shared){
+    const fullKey = shared ? key : `priv:${getDeviceId()}:${key}`;
+    localStorage.setItem('dc:'+fullKey, value); // always keep a local copy too
+    if(supabaseReady()){
+      try{ await supabaseSet(fullKey, value); }
+      catch(e){ console.warn('Supabase write failed, saved locally only:', e.message); }
+    }
+    return { key, value, shared: !!shared };
+  }
+};
+
+/* ---------- storage ---------- */
+function patientsKey(){
+  return institutionSettings.workspace ? `wsp:${institutionSettings.workspace}:patients-data` : 'patients-data';
+}
+async function loadPatients(){
+  try{
+    const res = await Store.get(patientsKey(), !!institutionSettings.workspace);
+    patients = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){ patients = []; }
+}
+async function savePatients(){
+  try{ await Store.set(patientsKey(), JSON.stringify(patients), !!institutionSettings.workspace); }
+  catch(e){ console.error('Storage error', e); }
+}
+async function loadSettings(){
+  try{
+    const res = await Store.get('institution-settings');
+    institutionSettings = res && res.value ? JSON.parse(res.value) : institutionSettings;
+  }catch(e){ /* no settings saved yet */ }
+  document.getElementById('s-institution').value = institutionSettings.institution||'';
+  document.getElementById('s-unit').value = institutionSettings.unit||'';
+  document.getElementById('s-examiner').value = institutionSettings.examiner||'';
+  document.getElementById('s-regno').value = institutionSettings.regno||'';
+  document.getElementById('s-workspace').value = institutionSettings.workspace||'';
+  applyTheme(institutionSettings.theme||'teal');
+  const sc = getSupabaseConfig();
+  const urlField = document.getElementById('s-supabase-url');
+  const keyField = document.getElementById('s-supabase-key');
+  if(urlField) urlField.value = sc.url||'';
+  if(keyField) keyField.value = sc.anonKey||'';
+  updateSyncStatus();
+}
+async function saveSettings(){
+  institutionSettings = {
+    institution: document.getElementById('s-institution').value.trim(),
+    unit: document.getElementById('s-unit').value.trim(),
+    examiner: document.getElementById('s-examiner').value.trim(),
+    regno: document.getElementById('s-regno').value.trim(),
+    workspace: document.getElementById('s-workspace').value.trim(),
+    theme: institutionSettings.theme || 'teal'
+  };
+  try{ await Store.set('institution-settings', JSON.stringify(institutionSettings)); }
+  catch(e){ console.error('Storage error', e); }
+  await loadPatients();
+  showView('list');
+}
+function saveSupabaseConfig(){
+  const url = document.getElementById('s-supabase-url').value.trim().replace(/\/$/,'');
+  const anonKey = document.getElementById('s-supabase-key').value.trim();
+  setSupabaseConfig({ url, anonKey });
+  updateSyncStatus();
+  alert(url && anonKey ? 'Cloud sync saved. New saves will sync to Supabase.' : 'Cloud sync cleared — using local storage only.');
+}
+function updateSyncStatus(){
+  const el = document.getElementById('sync-status');
+  if(!el) return;
+  el.textContent = supabaseReady() ? '☁️ Cloud sync active — data backs up to your Supabase project.' : '📱 Local only — data stays on this device until you add Supabase details below.';
+}
+function applyTheme(theme){
+  document.body.setAttribute('data-theme', theme==='teal' ? '' : theme);
+  document.querySelectorAll('.theme-swatch').forEach(s=>s.classList.toggle('active', s.dataset.theme===theme));
+}
+async function setTheme(theme){
+  institutionSettings.theme = theme;
+  applyTheme(theme);
+  try{ await Store.set('institution-settings', JSON.stringify(institutionSettings)); }
+  catch(e){ console.error('Storage error', e); }
+}
+
+/* ---------- navigation ---------- */
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.getElementById('tab-list').classList.toggle('active', name==='list');
+  document.getElementById('tab-appts').classList.toggle('active', name==='appts');
+  document.getElementById('tab-new').classList.toggle('active', name==='new');
+  document.getElementById('tab-detail').classList.toggle('active', name==='detail');
+  document.getElementById('tab-detail').style.display = currentId ? 'block' : 'none';
+  if(name==='list') renderList();
+  if(name==='appts') renderAppointments();
+  if(name==='settings') loadSettings();
+}
+
+/* ---------- dept dropdown + dynamic forms ---------- */
+function populateDeptDropdown(){
+  const sel = document.getElementById('f-dept');
+  DEPARTMENTS.forEach(d=>{
+    const opt = document.createElement('option');
+    opt.value = d.id; opt.textContent = d.label;
+    sel.appendChild(opt);
+  });
+}
+function fieldHtml(deptId, f){
+  const uid = `${deptId}-${f.id}`;
+  if(f.type==='text' || f.type==='number'){
+    return `<div class="field"><label>${f.label}</label><input type="${f.type}" id="${uid}" placeholder="${f.placeholder||''}" /></div>`;
+  }
+  if(f.type==='textarea'){
+    return `<div class="field"><label>${f.label}</label><textarea id="${uid}" placeholder="${f.placeholder||''}"></textarea></div>`;
+  }
+  if(f.type==='select'){
+    const opts = f.options.map(o=>`<option>${o}</option>`).join('');
+    return `<div class="field"><label>${f.label}</label><select id="${uid}"><option value="">—</option>${opts}</select></div>`;
+  }
+  if(f.type==='periochart'){
+    return `<div class="field">
+      <label>${f.label}</label>
+      <div class="arch-label">Upper right</div><div class="tooth-grid" id="grid-ur"></div>
+      <div class="arch-label">Upper left</div><div class="tooth-grid" id="grid-ul"></div>
+      <div class="arch-label">Lower right</div><div class="tooth-grid" id="grid-lr"></div>
+      <div class="arch-label">Lower left</div><div class="tooth-grid" id="grid-ll"></div>
+      <div class="chart-legend">
+        <span><i class="legend-swatch" style="background:var(--accent-soft);border:1px solid var(--accent-line);"></i>PD ≤3mm</span>
+        <span><i class="legend-swatch" style="background:var(--amber-soft);border:1px solid #E3CFA0;"></i>PD 4–5mm</span>
+        <span><i class="legend-swatch" style="background:var(--alert-soft);border:1px solid #E4BDB6;"></i>PD ≥6mm</span>
+        <span><i class="legend-swatch" style="background:var(--alert);"></i>BOP+ (tap dot)</span>
+        <span>Mob = mobility grade 0–3</span>
+      </div>
+      <div class="fdi-note">FDI two-digit notation — first digit is quadrant (1 UR, 2 UL, 3 LL, 4 LR), second is tooth position from midline.</div>
+    </div>`;
+  }
+  if(f.type==='toothtable'){
+    return `<div class="field">
+      <label>${f.label}</label>
+      <table class="findings-table"><thead><tr><th style="width:20%;">Tooth</th><th style="width:38%;">Finding</th><th style="width:34%;">Planned tx</th><th></th></tr></thead>
+      <tbody id="pedo-tbody"></tbody></table>
+      <button type="button" class="add-row-btn" onclick="addPedoRow()">+ Add tooth</button>
+    </div>`;
+  }
+  return '';
+}
+function renderDeptForms(){
+  const container = document.getElementById('dept-forms-container');
+  container.innerHTML = DEPARTMENTS.map(d=>{
+    const fields = d.fields.map(f=>fieldHtml(d.id,f)).join('');
+    return `<div class="dept-block" id="dept-${d.id}" style="display:none;">${fields}</div>`;
+  }).join('');
+  buildFdiChart();
+}
+function onDeptChange(){
+  const deptId = document.getElementById('f-dept').value;
+  const wrap = document.getElementById('dept-section-wrap');
+  document.querySelectorAll('.dept-block').forEach(b=>b.style.display='none');
+  if(!deptId){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  document.getElementById('dept-'+deptId).style.display='block';
+  const dept = DEPARTMENTS.find(d=>d.id===deptId);
+  document.getElementById('dept-section-title').textContent = dept.label + ' examination';
+  if(deptId==='pedo'){ pedoRowsState = pedoRowsState.length ? pedoRowsState : []; renderPedoTable(); }
+}
+
+/* ---------- FDI periodontal chart ---------- */
+function buildFdiChart(){
+  const grids = { ur:FDI_UR, ul:FDI_UL, lr:FDI_LR, ll:FDI_LL };
+  Object.keys(grids).forEach(key=>{
+    const el = document.getElementById('grid-'+key);
+    if(!el) return;
+    el.innerHTML='';
+    grids[key].forEach(t=>{
+      const card = document.createElement('div');
+      card.className='tooth';
+      card.innerHTML = `
+        <div class="tnum">${t}</div>
+        <input class="pd" type="number" min="0" max="15" data-tooth="${t}" placeholder="–" oninput="onPdInput(this)" />
+        <div class="tooth-controls">
+          <button type="button" class="bop-dot" data-tooth="${t}" onclick="toggleBop(this)" title="Bleeding on probing"></button>
+          <select class="mob-select" data-tooth="${t}">
+            <option value="">M</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
+          </select>
+        </div>`;
+      el.appendChild(card);
+    });
+  });
+}
+function onPdInput(input){
+  input.classList.remove('pd-ok','pd-mod','pd-sev');
+  const v = parseInt(input.value,10);
+  if(isNaN(v)) return;
+  if(v<=3) input.classList.add('pd-ok');
+  else if(v<=5) input.classList.add('pd-mod');
+  else input.classList.add('pd-sev');
+}
+function toggleBop(btn){ btn.classList.toggle('active'); }
+function readToothChart(){
+  const teeth = {};
+  document.querySelectorAll('#dept-perio .tooth').forEach(card=>{
+    const pdInput = card.querySelector('input.pd');
+    const t = pdInput.dataset.tooth;
+    const bop = card.querySelector('.bop-dot').classList.contains('active');
+    const mob = card.querySelector('.mob-select').value;
+    if(pdInput.value || bop || mob) teeth[t] = { pd: pdInput.value||'', bop, mob };
+  });
+  return teeth;
+}
+function writeToothChart(teeth){
+  document.querySelectorAll('#dept-perio .tooth').forEach(card=>{
+    const pdInput = card.querySelector('input.pd');
+    const t = pdInput.dataset.tooth;
+    const data = (teeth && teeth[t]) || {};
+    pdInput.value = data.pd || '';
+    onPdInput(pdInput);
+    card.querySelector('.bop-dot').classList.toggle('active', !!data.bop);
+    card.querySelector('.mob-select').value = data.mob || '';
+  });
+}
+
+/* ---------- common dentition status chart (FDI, all departments) ---------- */
+function buildDentitionTable(){
+  const tbody = document.getElementById('dentition-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = FDI_ALL.map(t=>`
+    <tr>
+      <td style="font-family:var(--font-mono);font-weight:600;">${t}</td>
+      <td><select data-tooth="${t}" class="dent-status" onchange="onDentStatusChange(this)"></select></td>
+      <td>
+        <select data-tooth="${t}" class="dent-subtype" style="display:none;margin-bottom:4px;"></select>
+        <input type="text" data-tooth="${t}" class="dent-detail" placeholder="e.g. composite, PFM crown…" />
+      </td>
+      <td style="text-align:center;"><button type="button" class="bop-dot dent-ttp" data-tooth="${t}" onclick="toggleBop(this)" title="Tender on percussion"></button></td>
+    </tr>`).join('');
+  tbody.querySelectorAll('.dent-status').forEach(sel=>{
+    sel.innerHTML = TOOTH_STATUSES.map(s=>`<option>${s}</option>`).join('');
+  });
+}
+function subtypeOptionsFor(status){
+  if(status==='Fractured') return ELLIS_CLASSES;
+  if(status==='Impacted') return IMPACTION_TYPES;
+  return null;
+}
+function onDentStatusChange(sel){
+  const row = sel.closest('tr');
+  const subSel = row.querySelector('.dent-subtype');
+  const opts = subtypeOptionsFor(sel.value);
+  if(opts){
+    subSel.innerHTML = '<option value="">— select —</option>' + opts.map(o=>`<option>${o}</option>`).join('');
+    subSel.style.display = 'block';
+  } else {
+    subSel.style.display = 'none';
+    subSel.value = '';
+  }
+}
+function readDentitionChart(){
+  const chart = {};
+  document.querySelectorAll('#dentition-tbody tr').forEach(row=>{
+    const statusSel = row.querySelector('.dent-status');
+    const subSel = row.querySelector('.dent-subtype');
+    const detailInput = row.querySelector('.dent-detail');
+    const ttpBtn = row.querySelector('.dent-ttp');
+    const t = statusSel.dataset.tooth;
+    const status = statusSel.value;
+    const subtype = subSel.style.display!=='none' ? subSel.value : '';
+    const detail = detailInput.value;
+    const ttp = ttpBtn.classList.contains('active');
+    if(status!=='Present' || detail || ttp){ chart[t] = { status, subtype, detail, ttp }; }
+  });
+  return chart;
+}
+function writeDentitionChart(chart){
+  document.querySelectorAll('#dentition-tbody tr').forEach(row=>{
+    const statusSel = row.querySelector('.dent-status');
+    const subSel = row.querySelector('.dent-subtype');
+    const detailInput = row.querySelector('.dent-detail');
+    const ttpBtn = row.querySelector('.dent-ttp');
+    const t = statusSel.dataset.tooth;
+    const data = (chart && chart[t]) || {};
+    statusSel.value = data.status || 'Present';
+    onDentStatusChange(statusSel);
+    if(data.subtype) subSel.value = data.subtype;
+    detailInput.value = data.detail || '';
+    ttpBtn.classList.toggle('active', !!data.ttp);
+  });
+}
+function dentitionChartToText(chart){
+  const entries = Object.entries(chart||{});
+  if(entries.length===0) return 'No missing, decayed, restored, impacted, fractured, or tender teeth noted; dentition otherwise unremarkable.';
+  return entries.map(([t,d])=>`${t}: ${d.status}${d.subtype?' — '+d.subtype:''}${d.detail?' ('+d.detail+')':''}${d.ttp?' — TTP+':''}`).join('; ');
+}
+
+/* ---------- chief complaint & HOPI builders ---------- */
+function generateCC(){
+  const symptom = document.getElementById('cc-symptom').value;
+  const duration = document.getElementById('cc-duration').value;
+  const unit = document.getElementById('cc-unit').value;
+  const region = document.getElementById('cc-region').value.trim();
+  if(!symptom){ alert('Select a symptom first.'); return; }
+  let sentence = `Patient presents with a chief complaint of ${symptom}`;
+  if(region) sentence += ` in relation to ${region}`;
+  if(duration) sentence += ` since ${duration} ${unit}`;
+  sentence += '.';
+  document.getElementById('f-cc').value = sentence;
+  // prefill HOPI location/duration for convenience
+  if(region && !document.getElementById('hopi-location').value) document.getElementById('hopi-location').value = region;
+  if(duration && !document.getElementById('hopi-duration').value) document.getElementById('hopi-duration').value = `${duration} ${unit}`;
+}
+function generateHOPI(){
+  const onset = document.getElementById('hopi-onset').value;
+  const duration = document.getElementById('hopi-duration').value.trim();
+  const nature = document.getElementById('hopi-nature').value;
+  const severity = document.getElementById('hopi-severity').value;
+  const location = document.getElementById('hopi-location').value.trim();
+  const prior = document.getElementById('hopi-prior').value;
+  const exacerbating = document.getElementById('hopi-exacerbating').value.trim();
+  const relieving = document.getElementById('hopi-relieving').value.trim();
+  const associated = document.getElementById('hopi-associated').value.trim();
+  const medications = document.getElementById('hopi-medications').value.trim();
+
+  let parts = [];
+  let opener = 'Patient reports';
+  if(severity) opener += ` ${severity.toLowerCase()}`;
+  if(nature) opener += ` ${nature.toLowerCase()}`;
+  opener += location ? ` pain in relation to ${location}` : ' pain';
+  if(onset) opener += `, of ${onset.toLowerCase()} onset`;
+  if(duration) opener += `, since ${duration}`;
+  parts.push(opener + '.');
+
+  if(exacerbating) parts.push(`Aggravated by ${exacerbating}.`);
+  if(relieving) parts.push(`Relieved by ${relieving}.`);
+  if(prior) parts.push(prior==='First episode' ? 'This is the first such episode.' : 'Patient reports similar episodes in the past.');
+  parts.push(associated ? `Associated symptoms: ${associated}.` : 'No associated symptoms reported.');
+  parts.push(medications ? `Previous medication taken: ${medications}.` : 'No prior medication taken for this complaint.');
+
+  document.getElementById('f-hpi').value = parts.join(' ');
+}
+
+/* ---------- image capture (radiographs / clinical photos) ---------- */
+function imagesKey(patientId){
+  return institutionSettings.workspace ? `wsp:${institutionSettings.workspace}:images:${patientId}` : `images:${patientId}`;
+}
+async function loadImagesFor(patientId){
+  try{
+    const res = await Store.get(imagesKey(patientId), !!institutionSettings.workspace);
+    return res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){ return []; }
+}
+async function saveImagesFor(patientId, images){
+  try{ await Store.set(imagesKey(patientId), JSON.stringify(images), !!institutionSettings.workspace); }
+  catch(e){ console.error('Image storage error', e); }
+}
+function resizeImageFile(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const maxDim = 900;
+        let {width,height} = img;
+        if(width>height && width>maxDim){ height = Math.round(height*maxDim/width); width = maxDim; }
+        else if(height>maxDim){ width = Math.round(width*maxDim/height); height = maxDim; }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img,0,0,width,height);
+        resolve(canvas.toDataURL('image/jpeg', 0.72));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+async function onImagesSelected(event){
+  const files = Array.from(event.target.files||[]);
+  for(const file of files){
+    try{
+      const dataUrl = await resizeImageFile(file);
+      pendingImages.push({ id:'img_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), dataUrl, caption:file.name.replace(/\.[^/.]+$/,''), type:'Intraoral' });
+    }catch(e){ /* skip unreadable file */ }
+  }
+  event.target.value = '';
+  renderImagePreviewGrid();
+}
+function renderImagePreviewGrid(){
+  const grid = document.getElementById('imagePreviewGrid');
+  grid.innerHTML = pendingImages.map((img,i)=>`
+    <div class="image-card">
+      <img src="${img.dataUrl}" />
+      <div class="img-meta">
+        <select onchange="updatePendingImage(${i},'type',this.value)">
+          ${['Intraoral','Extraoral','Radiograph — IOPA','Radiograph — OPG','Radiograph — Occlusal','Other'].map(t=>`<option ${t===img.type?'selected':''}>${t}</option>`).join('')}
+        </select>
+        <input type="text" value="${escapeAttr(img.caption)}" placeholder="Caption" oninput="updatePendingImage(${i},'caption',this.value)" />
+        <button type="button" class="rm-img" onclick="removePendingImage(${i})">Remove</button>
+      </div>
+    </div>`).join('');
+}
+function updatePendingImage(i,key,val){ pendingImages[i][key]=val; }
+function removePendingImage(i){ pendingImages.splice(i,1); renderImagePreviewGrid(); }
+
+/* ---------- pedo tooth-wise findings table ---------- */
+function renderPedoTable(){
+  const tbody = document.getElementById('pedo-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = pedoRowsState.map((r,i)=>`
+    <tr>
+      <td><input type="text" value="${escapeAttr(r.tooth)}" oninput="updatePedoRow(${i},'tooth',this.value)" placeholder="55"/></td>
+      <td><input type="text" value="${escapeAttr(r.finding)}" oninput="updatePedoRow(${i},'finding',this.value)" placeholder="Caries"/></td>
+      <td><input type="text" value="${escapeAttr(r.tx)}" oninput="updatePedoRow(${i},'tx',this.value)" placeholder="GIC restoration"/></td>
+      <td><button type="button" class="rm-row" onclick="removePedoRow(${i})">×</button></td>
+    </tr>`).join('');
+}
+function addPedoRow(){ pedoRowsState.push({tooth:'',finding:'',tx:''}); renderPedoTable(); }
+function updatePedoRow(i,key,val){ pedoRowsState[i][key]=val; }
+function removePedoRow(i){ pedoRowsState.splice(i,1); renderPedoTable(); }
+function escapeAttr(s){ return (s||'').replace(/"/g,'&quot;'); }
+
+/* ---------- generic dept field collect / populate / display ---------- */
+function collectDeptData(deptId){
+  if(!deptId) return {};
+  const dept = DEPARTMENTS.find(d=>d.id===deptId);
+  const data = {};
+  dept.fields.forEach(f=>{
+    if(f.type==='periochart'){ data[f.id] = readToothChart(); }
+    else if(f.type==='toothtable'){ data[f.id] = pedoRowsState.filter(r=>r.tooth||r.finding||r.tx); }
+    else {
+      const el = document.getElementById(`${deptId}-${f.id}`);
+      if(el) data[f.id] = el.value;
+    }
+  });
+  return data;
+}
+function populateDeptData(deptId, data){
+  if(!deptId || !data) return;
+  const dept = DEPARTMENTS.find(d=>d.id===deptId);
+  dept.fields.forEach(f=>{
+    if(f.type==='periochart'){ writeToothChart(data[f.id]||{}); }
+    else if(f.type==='toothtable'){ pedoRowsState = data[f.id] || []; renderPedoTable(); }
+    else {
+      const el = document.getElementById(`${deptId}-${f.id}`);
+      if(el) el.value = (data[f.id]!==undefined ? data[f.id] : '');
+    }
+  });
+}
+function renderDeptDisplayHtml(deptId, data){
+  if(!deptId) return '<p class="detail-body-text">—</p>';
+  const dept = DEPARTMENTS.find(d=>d.id===deptId);
+  let rows = '';
+  dept.fields.forEach(f=>{
+    if(f.type==='periochart'){
+      const teeth = data[f.id]||{};
+      const entries = Object.entries(teeth);
+      if(entries.length===0) return;
+      const summary = entries.map(([t,d])=>`${t}: PD ${d.pd||'–'}mm${d.bop?' · BOP+':''}${d.mob?' · Mob '+d.mob:''}`).join(' | ');
+      rows += `<div class="kv"><dt>Chart (non-zero sites)</dt><dd>${escapeHtml(summary)}</dd></div>`;
+    } else if(f.type==='toothtable'){
+      const table = data[f.id]||[];
+      if(table.length===0) return;
+      const summary = table.map(r=>`${r.tooth}: ${r.finding}${r.tx?' → '+r.tx:''}`).join(' | ');
+      rows += `<div class="kv"><dt>${f.label}</dt><dd>${escapeHtml(summary)}</dd></div>`;
+    } else {
+      const v = data[f.id];
+      if(!v) return;
+      rows += `<div class="kv"><dt>${f.label}</dt><dd>${escapeHtml(v)}</dd></div>`;
+    }
+  });
+  return rows || '<p class="detail-body-text">No findings recorded.</p>';
+}
+function deptDataToText(deptId, data){
+  if(!deptId) return 'No department-specific findings.';
+  const dept = DEPARTMENTS.find(d=>d.id===deptId);
+  let lines = [];
+  dept.fields.forEach(f=>{
+    if(f.type==='periochart'){
+      const teeth = data[f.id]||{};
+      const entries = Object.entries(teeth).filter(([t,d])=>d.pd || d.bop || d.mob);
+      if(entries.length) lines.push('Periodontal chart (notable sites): ' + entries.map(([t,d])=>`Tooth ${t} PD ${d.pd||'–'}mm${d.bop?', BOP+':''}${d.mob?', mobility '+d.mob:''}`).join('; '));
+    } else if(f.type==='toothtable'){
+      const table = data[f.id]||[];
+      if(table.length) lines.push(f.label+': ' + table.map(r=>`${r.tooth} — ${r.finding}${r.tx?' ('+r.tx+')':''}`).join('; '));
+    } else if(data[f.id]) {
+      lines.push(f.label+': '+data[f.id]);
+    }
+  });
+  return lines.length ? lines.join('\n') : 'No department-specific findings recorded.';
+}
+
+/* ---------- form lifecycle ---------- */
+function clearForm(){
+  ['f-name','f-age','f-sex','f-date','f-phone','f-cc','f-hpi','f-mh','f-dh','f-ph','f-fh','f-extraoral','f-notes','f-dx','f-tx','f-nextdate','f-nextproc'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  ['cc-symptom','cc-duration','cc-unit','cc-region','hopi-onset','hopi-duration','hopi-nature','hopi-severity','hopi-location','hopi-prior','hopi-exacerbating','hopi-relieving','hopi-associated','hopi-medications'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('f-dept').value='';
+  document.getElementById('dept-section-wrap').style.display='none';
+  document.querySelectorAll('.dept-block').forEach(b=>b.style.display='none');
+  pedoRowsState = [];
+  pendingImages = [];
+  renderImagePreviewGrid();
+  buildFdiChart();
+  buildDentitionTable();
+}
+function startNewCase(){
+  currentId = null;
+  clearForm();
+  const today = new Date();
+  document.getElementById('f-date').value = today.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+  showView('new');
+}
+async function editCurrentCase(){
+  const p = patients.find(x=>x.id===currentId);
+  if(!p) return;
+  clearForm();
+  document.getElementById('f-name').value = p.name||'';
+  document.getElementById('f-age').value = p.age||'';
+  document.getElementById('f-phone').value = p.phone||'';
+  document.getElementById('f-sex').value = p.sex||'';
+  document.getElementById('f-date').value = p.date||'';
+  document.getElementById('f-cc').value = p.cc||'';
+  document.getElementById('f-hpi').value = p.hpi||'';
+  document.getElementById('f-mh').value = p.mh||'';
+  document.getElementById('f-dh').value = p.dh||'';
+  document.getElementById('f-ph').value = p.ph||'';
+  document.getElementById('f-fh').value = p.fh||'';
+  document.getElementById('f-extraoral').value = p.extraoral||'';
+  document.getElementById('f-notes').value = p.notes||'';
+  document.getElementById('f-dx').value = p.dx||'';
+  document.getElementById('f-tx').value = p.tx||'';
+  document.getElementById('f-nextdate').value = p.nextDate||'';
+  document.getElementById('f-nextproc').value = p.nextProc||'';
+  document.getElementById('f-dept').value = p.department||'';
+  onDeptChange();
+  populateDeptData(p.department, p.deptData||{});
+  writeDentitionChart(p.dentitionChart||{});
+  pendingImages = await loadImagesFor(p.id);
+  renderImagePreviewGrid();
+  showView('new');
+}
+
+async function saveCase(){
+  const name = document.getElementById('f-name').value.trim();
+  if(!name){ alert('Please enter a patient name.'); return; }
+  const department = document.getElementById('f-dept').value;
+  const existing = patients.find(x=>x.id===currentId) || {};
+  const data = {
+    id: currentId || ('p_'+Date.now()),
+    name,
+    age: document.getElementById('f-age').value,
+    phone: document.getElementById('f-phone').value.trim(),
+    sex: document.getElementById('f-sex').value,
+    date: document.getElementById('f-date').value,
+    department,
+    cc: document.getElementById('f-cc').value,
+    hpi: document.getElementById('f-hpi').value,
+    mh: document.getElementById('f-mh').value,
+    dh: document.getElementById('f-dh').value,
+    ph: document.getElementById('f-ph').value,
+    fh: document.getElementById('f-fh').value,
+    extraoral: document.getElementById('f-extraoral').value,
+    deptData: collectDeptData(department),
+    dentitionChart: readDentitionChart(),
+    notes: document.getElementById('f-notes').value,
+    dx: document.getElementById('f-dx').value,
+    tx: document.getElementById('f-tx').value,
+    nextDate: document.getElementById('f-nextdate').value,
+    nextProc: document.getElementById('f-nextproc').value,
+    hasImages: pendingImages.length>0,
+    aiSummary: existing.aiSummary || '',
+    createdAt: existing.createdAt || Date.now()
+  };
+  const idx = patients.findIndex(x=>x.id===data.id);
+  if(idx>=0) patients[idx]=data; else patients.unshift(data);
+  await saveImagesFor(data.id, pendingImages);
+  await savePatients();
+  currentId = data.id;
+  openDetail(data.id);
+}
+
+/* ---------- list view ---------- */
+function deptLabel(id){ const d = DEPARTMENTS.find(x=>x.id===id); return d ? d.label : 'Undiagnosed'; }
+function renderList(){
+  const q = (document.getElementById('searchInput').value||'').toLowerCase();
+  const container = document.getElementById('listContainer');
+  const filtered = patients.filter(p=>p.name.toLowerCase().includes(q));
+  if(filtered.length===0){
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="glyph">＋</div>
+        <p>${patients.length===0 ? 'No cases yet. Start your first case history.' : 'No patients match your search.'}</p>
+        ${patients.length===0 ? '<button class="btn-new" onclick="startNewCase()">New case</button>' : ''}
+      </div>`;
+    return;
+  }
+  container.innerHTML = filtered.map(p=>`
+    <div class="patient-card" onclick="openDetail('${p.id}')">
+      <div>
+        <div class="pname">${escapeHtml(p.name)}</div>
+        <div class="pmeta">${p.age?p.age+'y · ':''}${p.sex||''} ${p.date?'· '+p.date:''}${p.phone?' · '+escapeHtml(p.phone):''}</div>
+      </div>
+      <div class="stage-tag">${deptLabel(p.department)}</div>
+    </div>`).join('');
+}
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ---------- detail view ---------- */
+function openDetail(id){
+  currentId = id;
+  const p = patients.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('d-name').textContent = p.name;
+  document.getElementById('d-meta').textContent = `${p.age?p.age+'y':''} ${p.sex||''} · ${p.date||''}${p.phone?' · '+p.phone:''}`.trim();
+  document.getElementById('p-institution-line').textContent = institutionSettings.institution || 'Dental Case Sheet';
+  const unitLine = institutionSettings.unit || deptLabel(p.department);
+  document.getElementById('p-dept-line').textContent = `${unitLine} · ${p.name} · ${p.age?p.age+'y':''} ${p.sex||''} · ${p.date||''}`;
+  const examinerBits = [institutionSettings.examiner ? 'Examiner: '+institutionSettings.examiner : '', institutionSettings.regno ? 'Reg. no: '+institutionSettings.regno : ''].filter(Boolean);
+  document.getElementById('p-examiner-line').textContent = examinerBits.join(' · ');
+
+  const historyHtml = ['cc','hpi','mh','dh','ph','fh'].map(k=>{
+    const labels = {cc:'Chief complaint',hpi:'History of present illness',mh:'Medical history',dh:'Dental history',ph:'Personal history',fh:'Family history'};
+    if(!p[k]) return '';
+    return `<div class="kv"><dt>${labels[k]}</dt><dd>${escapeHtml(p[k])}</dd></div>`;
+  }).join('') || '<p class="detail-body-text">—</p>';
+  document.getElementById('d-history').innerHTML = historyHtml;
+
+  document.getElementById('d-extraoral').textContent = p.extraoral || '—';
+  document.getElementById('d-dept-title').textContent = deptLabel(p.department) + ' findings';
+  document.getElementById('d-dept-content').innerHTML = renderDeptDisplayHtml(p.department, p.deptData||{});
+  document.getElementById('d-notes').textContent = p.notes || '—';
+  document.getElementById('d-dx').textContent = p.dx || '—';
+  document.getElementById('d-tx').textContent = p.tx || '—';
+  document.getElementById('d-nextvisit').textContent = p.nextDate ? `${formatDate(p.nextDate)}${p.nextProc?' — '+p.nextProc:''}` : 'No follow-up scheduled.';
+  document.getElementById('d-dentition').textContent = dentitionChartToText(p.dentitionChart||{});
+
+  const panel = document.getElementById('aiPanel');
+  panel.innerHTML = p.aiSummary ? renderAiPanel(p.aiSummary) : '';
+  showView('detail');
+
+  const imgSection = document.getElementById('d-images-section');
+  const imgGrid = document.getElementById('d-images');
+  if(p.hasImages){
+    imgSection.style.display = 'block';
+    imgGrid.innerHTML = '<p class="settings-note">Loading images…</p>';
+    loadImagesFor(p.id).then(imgs=>{
+      if(currentId!==p.id) return;
+      imgGrid.innerHTML = imgs.length ? imgs.map(img=>`
+        <div class="image-card">
+          <img src="${img.dataUrl}" />
+          <div class="img-meta" style="padding:6px;">
+            <div style="font-size:11px;font-weight:600;">${escapeHtml(img.type||'')}</div>
+            <div style="font-size:11px;color:var(--ink-faint);">${escapeHtml(img.caption||'')}</div>
+          </div>
+        </div>`).join('') : '<p class="settings-note">No images found.</p>';
+    });
+  } else {
+    imgSection.style.display = 'none';
+  }
+}
+function renderAiPanel(text){
+  return `<div class="ai-panel"><span class="ai-label">AI case report</span>${escapeHtml(text)}</div>`;
+}
+
+/* ---------- voice dictation ---------- */
+function initSpeech(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const micBtn = document.getElementById('micBtn');
+  if(!SR){ micBtn.style.display='none'; return; }
+  recog = new SR();
+  recog.continuous = true;
+  recog.interimResults = false;
+  recog.lang = 'en-IN';
+  recog.onresult = (e)=>{
+    let transcript = '';
+    for(let i=e.resultIndex;i<e.results.length;i++){ transcript += e.results[i][0].transcript; }
+    const ta = document.getElementById('f-notes');
+    ta.value = (ta.value ? ta.value+' ' : '') + transcript.trim();
+  };
+  recog.onerror = ()=>{ stopDictation(); };
+  recog.onend = ()=>{ if(recording){ recog.start(); } };
+}
+function toggleDictation(){ if(!recog) return; if(recording) stopDictation(); else startDictation(); }
+function startDictation(){ recording = true; document.getElementById('micBtn').classList.add('recording'); try{ recog.start(); }catch(e){} }
+function stopDictation(){ recording = false; document.getElementById('micBtn').classList.remove('recording'); try{ recog.stop(); }catch(e){} }
+
+/* ---------- AI summary ---------- */
+function buildCasePrompt(p){
+  return `You are assisting a dental postgraduate in drafting a clinical case report from raw chairside notes for the ${deptLabel(p.department)} department. Write a concise, professional case summary suitable for a case presentation or referral letter. Use these section headers: Presenting Complaint, Relevant History, Examination Findings, Diagnosis, Treatment Plan, Prognosis. Be factual, do not invent findings not given below, and keep it under 320 words.
+
+Institution: ${institutionSettings.institution||'n/a'}
+Patient: ${p.name}, ${p.age||'age n/a'}, ${p.sex||'sex n/a'}
+Date: ${p.date||'n/a'}
+Department: ${deptLabel(p.department)}
+
+Chief complaint: ${p.cc||'n/a'}
+History of present illness: ${p.hpi||'n/a'}
+Medical history: ${p.mh||'n/a'}
+Dental history: ${p.dh||'n/a'}
+Personal history: ${p.ph||'n/a'}
+Family history: ${p.fh||'n/a'}
+General & extraoral examination: ${p.extraoral||'n/a'}
+
+Dentition status (FDI numbering): ${dentitionChartToText(p.dentitionChart||{})}
+
+Department-specific findings:
+${deptDataToText(p.department, p.deptData||{})}
+
+Clinical notes: ${p.notes||'n/a'}
+Diagnosis (clinician-entered): ${p.dx||'n/a'}
+Treatment plan (clinician-entered): ${p.tx||'n/a'}`;
+}
+
+async function generateSummary(){
+  const p = patients.find(x=>x.id===currentId);
+  if(!p) return;
+  const btn = document.getElementById('genBtn');
+  const panel = document.getElementById('aiPanel');
+  btn.disabled = true;
+  panel.innerHTML = `<div class="ai-panel"><span class="ai-label">AI case report</span><span class="loading-dots">Drafting case report</span></div>`;
+  try{
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        messages:[{role:'user', content: buildCasePrompt(p)}]
+      })
+    });
+    const data = await response.json();
+    const text = (data.content||[]).map(b=>b.text||'').join('\n').trim();
+    p.aiSummary = text || 'No summary returned.';
+    await savePatients();
+    panel.innerHTML = renderAiPanel(p.aiSummary);
+  }catch(e){
+    panel.innerHTML = `<div class="ai-panel"><span class="ai-label">AI case report</span>Could not generate a summary right now. Please try again.</div>`;
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+/* ---------- appointments ---------- */
+function formatDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso+'T00:00:00');
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString(undefined,{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+}
+function renderAppointments(){
+  const container = document.getElementById('apptsContainer');
+  const todayIso = new Date().toISOString().slice(0,10);
+  const upcoming = patients.filter(p=>p.nextDate && p.nextDate>=todayIso)
+    .sort((a,b)=> a.nextDate<b.nextDate ? -1 : (a.nextDate>b.nextDate ? 1 : 0));
+  if(upcoming.length===0){
+    container.innerHTML = `<div class="empty-state"><div class="glyph">📅</div><p>No upcoming appointments. Add a next-visit date on any case to see it here.</p></div>`;
+    return;
+  }
+  container.innerHTML = upcoming.map(p=>{
+    const isToday = p.nextDate===todayIso;
+    return `
+    <div class="patient-card" onclick="openDetail('${p.id}')">
+      <div>
+        <div class="pname">${escapeHtml(p.name)}</div>
+        <div class="pmeta">${formatDate(p.nextDate)}${p.nextProc?' · '+escapeHtml(p.nextProc):''}${p.phone?' · '+escapeHtml(p.phone):''}</div>
+      </div>
+      <div class="stage-tag" style="${isToday?'background:var(--alert-soft);color:var(--alert);':''}">${isToday?'Today':deptLabel(p.department)}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- backup export / import ---------- */
+function exportBackup(){
+  const payload = { exportedAt: new Date().toISOString(), institutionSettings, patients };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `dentcase-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function importBackup(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    try{
+      const payload = JSON.parse(e.target.result);
+      const incoming = Array.isArray(payload.patients) ? payload.patients : [];
+      if(incoming.length===0){ alert('No cases found in that file.'); return; }
+      const proceed = confirm(`This file has ${incoming.length} case(s). Import and merge with your current list?`);
+      if(!proceed) return;
+      incoming.forEach(ip=>{
+        const idx = patients.findIndex(x=>x.id===ip.id);
+        if(idx>=0) patients[idx]=ip; else patients.push(ip);
+      });
+      await savePatients();
+      alert('Import complete.');
+      event.target.value = '';
+    }catch(err){
+      alert('Could not read that file — make sure it is a DentCase backup JSON.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ---------- init ---------- */
+(async function init(){
+  populateDeptDropdown();
+  renderDeptForms();
+  buildDentitionTable();
+  await loadSettings();
+  await loadPatients();
+  renderList();
+  initSpeech();
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js').catch(()=>{ /* offline support unavailable, app still works online */ });
+  }
+})();
+</script>
+</body>
+</html>
